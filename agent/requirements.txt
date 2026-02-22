@@ -1,0 +1,17 @@
+torch>=2.0.0
+transformers>=4.32.0
+peft>=0.4.0
+datasets
+accelerate
+scipy
+tiktoken
+transformers_stream_generator
+bitsandbytes
+scikit-learn
+pandas
+sentencepiece
+protobuf
+requests
+beautifulsoup4
+lxml
+dashscope

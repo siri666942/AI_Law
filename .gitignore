@@ -1,0 +1,50 @@
+# ==================== Python ====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# ==================== Backend ====================
+backend/.env
+backend/*.db
+backend/app.db
+backend/uploads/
+
+# ==================== Frontend ====================
+frontend/node_modules/
+frontend/dist/
+*.local
+
+# ==================== Agent ====================
+agent/.venv/
+agent/data/
+agent/*.pt
+agent/*.bin
+*.ckpt
+*.safetensors
+
+# ==================== Build / Output ====================
+dist/
+build/
+*.log
+
+# ==================== IDE / OS ====================
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ==================== 测试 / 覆盖率 ====================
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
