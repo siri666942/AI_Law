@@ -8,6 +8,7 @@
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.api.deps import get_current_user_optional
 from app.db.session import get_db
@@ -22,7 +23,7 @@ router = APIRouter()
 def create_feedback(
     payload: FeedbackCreateIn,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_current_user_optional),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """提交反馈；已登录则记录 user_id，未登录也可提交。"""
     fb = Feedback(

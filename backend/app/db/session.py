@@ -17,13 +17,28 @@
 - SessionLocal 类似于 EntityManagerFactory
 """
 
-from collections.abc import Generator
+from typing import Generator
+from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
 from app.db.base import Base
+
+
+def _ensure_sqlite_directory(database_url: str) -> None:
+    """为 SQLite 数据库文件预先创建父目录，避免因目录不存在而启动失败。"""
+    prefix = "sqlite:///"
+    if not database_url.startswith(prefix):
+        return
+
+    db_path = Path(database_url[len(prefix):])
+    if db_path.name != ":memory:":
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+
+_ensure_sqlite_directory(settings.DATABASE_URL)
 
 # ======================== 创建数据库引擎 ========================
 # create_engine 创建数据库引擎（连接池）

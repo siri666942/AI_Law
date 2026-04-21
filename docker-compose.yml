@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: lvbao-backend
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/uploads:/app/uploads
+    expose:
+      - "8000"
+
+  web:
+    build:
+      context: .
+      dockerfile: ./deploy/nginx/Dockerfile
+    container_name: lvbao-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - backend

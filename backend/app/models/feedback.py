@@ -6,6 +6,7 @@
 =============================================================================
 """
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
@@ -20,11 +21,11 @@ class Feedback(Base):
     __tablename__ = "feedbacks"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), index=True, default=None)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), index=True, default=None)
     type: Mapped[int] = mapped_column(Integer)
     content: Mapped[str] = mapped_column(Text)
-    contact: Mapped[str | None] = mapped_column(String(128), default=None)
-    images: Mapped[list | None] = mapped_column(JSON, default=None)
+    contact: Mapped[Optional[str]] = mapped_column(String(128), default=None)
+    images: Mapped[Optional[list]] = mapped_column(JSON, default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

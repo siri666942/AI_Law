@@ -8,6 +8,7 @@
 
 import re
 from datetime import date, datetime
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -48,7 +49,7 @@ def get_filter_options(db: Session = Depends(get_db)):
     }
 
 
-def _parse_filing_date(s: str | None) -> date | None:
+def _parse_filing_date(s: Optional[str]) -> Optional[date]:
     if not s or not s.strip():
         return None
     s = s.strip()
@@ -117,10 +118,10 @@ def _build_legal_case(case: Case) -> dict:
     }
 
 
-@router.get("", response_model=list[CaseListItem])
+@router.get("", response_model=List[CaseListItem])
 def list_cases(
-    keyword: str | None = Query(default=None, description="搜索关键词"),
-    status: str | None = Query(default=None, description="状态过滤 pending/processing/completed"),
+    keyword: Optional[str] = Query(default=None, description="搜索关键词"),
+    status: Optional[str] = Query(default=None, description="状态过滤 pending/processing/completed"),
     history: bool = Query(default=False, description="是否含已结案"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -143,10 +144,10 @@ def list_cases(
     return [_build_list_item(c, is_lawyer_view) for c in cases]
 
 
-@router.get("/legal-cases", response_model=list[dict])
+@router.get("/legal-cases", response_model=List[dict])
 def list_legal_cases(
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_current_user_optional),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """案件列表：返回与前端 LegalCase 接口一致的数据结构。已登录返回其案件，未登录返回空。"""
     if not current_user:

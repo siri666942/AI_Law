@@ -16,6 +16,7 @@
 """
 
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -57,7 +58,7 @@ class ContractOut(BaseModel):
     # 合同描述
     # 可能包含合同的详细说明、备注等
     # 可选字段，某些合同可能没有描述
-    description: str | None
+    description: Optional[str]
     
     # 合同状态
     # 用于跟踪合同的生命周期
@@ -66,7 +67,7 @@ class ContractOut(BaseModel):
     # 关联的文件 ID
     # 如果合同有上传的文件（如 PDF 扫描件），这里记录文件 ID
     # 可选字段，不是所有合同都有关联文件
-    file_id: int | None
+    file_id: Optional[int]
     
     # 合同创建时间
     created_at: datetime
@@ -106,7 +107,7 @@ class LawArticleOut(BaseModel):
     # 条款编号
     # 例如："第一条"、"第五百零一条"
     # 可选字段，某些法规可能没有明确的条款编号
-    article_no: str | None
+    article_no: Optional[str]
     
     # 条款的完整内容
     # 包含法条的正文文本

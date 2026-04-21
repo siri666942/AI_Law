@@ -24,6 +24,7 @@ cases 表
 └── created_at     - 创建时间
 """
 
+from typing import Optional
 from datetime import date, datetime, timezone
 
 from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text
@@ -40,16 +41,16 @@ class Case(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     case_no: Mapped[str] = mapped_column(String(64), index=True)
     title: Mapped[str] = mapped_column(String(255))
-    case_type: Mapped[str | None] = mapped_column(String(64), default=None)
+    case_type: Mapped[Optional[str]] = mapped_column(String(64), default=None)
     status: Mapped[str] = mapped_column(String(32), default="pending", index=True)
     progress: Mapped[int] = mapped_column(Integer, default=0)
-    court: Mapped[str | None] = mapped_column(String(255), default=None)
-    judge: Mapped[str | None] = mapped_column(String(64), default=None)
-    filing_date: Mapped[date | None] = mapped_column(Date, default=None)
-    amount: Mapped[str | None] = mapped_column(String(64), default=None)
-    applicable_law: Mapped[str | None] = mapped_column(Text, default=None)
+    court: Mapped[Optional[str]] = mapped_column(String(255), default=None)
+    judge: Mapped[Optional[str]] = mapped_column(String(64), default=None)
+    filing_date: Mapped[Optional[date]] = mapped_column(Date, default=None)
+    amount: Mapped[Optional[str]] = mapped_column(String(64), default=None)
+    applicable_law: Mapped[Optional[str]] = mapped_column(Text, default=None)
     lawyer_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
-    client_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), index=True, default=None)
+    client_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), index=True, default=None)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

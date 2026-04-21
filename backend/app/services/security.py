@@ -22,6 +22,7 @@
 """
 
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import bcrypt
 from jose import jwt
@@ -95,7 +96,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-def create_access_token(subject: str, expires_minutes: int | None = None) -> str:
+def create_access_token(subject: str, expires_minutes: Optional[int] = None) -> str:
     """
     创建 JWT 访问令牌
     

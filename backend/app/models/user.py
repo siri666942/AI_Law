@@ -21,6 +21,7 @@ users 表
 """
 
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -70,7 +71,7 @@ class User(Base):
     # Mapped[str | None] 表示可空字段
     # Python 3.10+ 使用 | 表示类型联合，相当于 Java 的 @Nullable
     # 早期版本使用 Optional[str] 或 Union[str, None]
-    email: Mapped[str | None] = mapped_column(String(255), index=True)
+    email: Mapped[Optional[str]] = mapped_column(String(255), index=True)
     
     # ======================== 认证字段 ========================
     # 存储 bcrypt 加密后的密码哈希值
@@ -82,11 +83,11 @@ class User(Base):
     
     # ======================== 扩展字段（前端对接）========================
     # 角色：lawyer=律师 / client=客户，可选，注册或角色选择后设置
-    role: Mapped[str | None] = mapped_column(String(20), index=True, default=None)
+    role: Mapped[Optional[str]] = mapped_column(String(20), index=True, default=None)
     # 头像 URL，可选
-    avatar: Mapped[str | None] = mapped_column(String(500), default=None)
+    avatar: Mapped[Optional[str]] = mapped_column(String(500), default=None)
     # 手机号，可选
-    phone: Mapped[str | None] = mapped_column(String(20), default=None)
+    phone: Mapped[Optional[str]] = mapped_column(String(20), default=None)
     
     # ======================== 时间戳字段 ========================
     # 账户创建时间

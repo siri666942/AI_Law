@@ -22,6 +22,7 @@ uploaded_files 表
 - UploadedFile 1:1 Contract (一个文件可以关联一个合同)
 """
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String
@@ -74,7 +75,7 @@ class UploadedFile(Base):
     
     # 文件的 MIME 类型，如 "application/pdf", "image/png" 等
     # 可空，因为有些上传可能无法识别类型
-    content_type: Mapped[str | None] = mapped_column(String(100))
+    content_type: Mapped[Optional[str]] = mapped_column(String(100))
     
     # 文件大小，单位：字节
     size: Mapped[int] = mapped_column(Integer, default=0)

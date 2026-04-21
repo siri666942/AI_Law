@@ -8,6 +8,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from typing import Optional, List
 
 from app.db.session import get_db
 from app.models.lawyer_profile import LawyerProfile
@@ -17,10 +18,10 @@ from app.schemas.lawyer import LawyerDetailOut, LawyerEducation, LawyerListItem,
 router = APIRouter()
 
 
-@router.get("", response_model=list[LawyerListItem])
+@router.get("", response_model=List[LawyerListItem])
 def list_lawyers(
-    keyword: str | None = Query(default=None, description="搜索关键词"),
-    category: str | None = Query(default=None, description="专业领域/分类"),
+    keyword: Optional[str] = Query(default=None, description="搜索关键词"),
+    category: Optional[str] = Query(default=None, description="专业领域/分类"),
     db: Session = Depends(get_db),
 ):
     """律师列表：可公开访问；支持关键词与分类过滤。"""

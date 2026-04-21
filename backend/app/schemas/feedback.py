@@ -7,6 +7,7 @@
 """
 
 from datetime import datetime
+from typing import Optional, List
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,8 +16,8 @@ class FeedbackCreateIn(BaseModel):
     """提交反馈请求体：type 1-5，content 必填，contact、images 可选。"""
     type: int = Field(..., ge=1, le=5, description="1:功能建议 2:使用问题 3:投诉举报 4:合作咨询 5:认证问题")
     content: str = Field(..., min_length=10, max_length=500)
-    contact: str | None = Field(default=None, max_length=128)
-    images: list[str] | None = Field(default=None, max_length=3, description="最多3张图片 URL")
+    contact: Optional[str] = Field(default=None, max_length=128)
+    images: Optional[List[str]] = Field(default=None, max_length=3, description="最多3张图片 URL")
 
 
 class FeedbackOut(BaseModel):
@@ -26,5 +27,5 @@ class FeedbackOut(BaseModel):
     id: int
     type: int
     content: str
-    contact: str | None
-    created_at: datetime | None = None
+    contact: Optional[str]
+    created_at: Optional[datetime] = None

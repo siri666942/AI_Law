@@ -19,6 +19,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.core.config import settings
 from app.db.session import get_db
@@ -75,7 +76,7 @@ def get_current_user(
         
         # 从 Token 的 payload 中获取 subject（用户名）
         # payload.get() 方法返回 None 如果 key 不存在（Java 中需要判空）
-        username: str | None = payload.get("sub")  # Python 3.10+ 的类型联合语法，Java 没有
+        username: Optional[str] = payload.get("sub")
         if not username:
             raise credentials_exception
     except JWTError:
@@ -96,8 +97,8 @@ def get_current_user(
 
 def get_current_user_optional(
     db: Session = Depends(get_db),
-    token: str | None = Depends(oauth2_scheme_optional),
-) -> User | None:
+    token: Optional[str] = Depends(oauth2_scheme_optional),
+) -> Optional[User]:
     """可选当前用户：有有效 Token 则返回 User，否则返回 None。"""
     if not token:
         return None

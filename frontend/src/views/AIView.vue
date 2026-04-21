@@ -33,12 +33,27 @@
               v-for="tpl in documentTemplates"
               :key="tpl.id"
               class="template-card"
+              :class="{ loading: isGeneratingDocument }"
               @click="selectTemplate(tpl)"
             >
               <div class="tpl-icon">{{ tpl.icon }}</div>
               <div class="tpl-name">{{ tpl.name }}</div>
               <div class="tpl-desc">{{ tpl.description }}</div>
             </div>
+          </div>
+          <div v-if="isGeneratingDocument" class="status-card">
+            <h4>正在生成文档</h4>
+            <p>{{ generatingTemplateName }} 正在生成 Markdown 初稿，请稍候…</p>
+          </div>
+          <div v-if="documentError" class="error-card">
+            {{ documentError }}
+          </div>
+          <div v-if="documentResult" class="document-result">
+            <div class="result-header">
+              <h4>{{ documentResult.title }}</h4>
+              <p>已生成可直接预览的初稿内容，建议结合实际案情继续修改。</p>
+            </div>
+            <div class="document-preview markdown-body" v-html="renderMarkdown(documentResult.content)"></div>
           </div>
         </div>
 
@@ -47,16 +62,31 @@
             <h3>合规性初筛与风险提示</h3>
             <p>上传合同或文档，AI 将自动进行合规性初步审查</p>
           </div>
-          <div class="upload-area" @click="triggerUpload" @dragover.prevent @drop.prevent="handleDrop">
+          <div
+            class="upload-area"
+            :class="{ disabled: isReviewing }"
+            @click="triggerUpload"
+            @dragover.prevent
+            @drop.prevent="handleDrop"
+          >
             <input type="file" ref="fileInput" @change="handleFileChange" accept=".doc,.docx,.pdf,.txt" style="display: none" />
             <div class="upload-icon">📄</div>
             <div class="upload-text">
               <div class="upload-title">点击或拖拽文件到此处上传</div>
               <div class="upload-hint">支持 .doc .docx .pdf .txt 格式</div>
+              <div v-if="reviewFileName" class="upload-file">当前文件：{{ reviewFileName }}</div>
             </div>
+          </div>
+          <div v-if="isReviewing" class="status-card">
+            <h4>正在审查文档</h4>
+            <p>{{ reviewFileName || '文档' }} 正在进行真实模型分析，请稍候…</p>
+          </div>
+          <div v-if="reviewError" class="error-card">
+            {{ reviewError }}
           </div>
           <div v-if="reviewResult" class="review-result">
             <h4>风险审查结果</h4>
+            <div class="review-summary">{{ reviewResult.summary }}</div>
             <div class="risk-list">
               <div v-for="(risk, index) in reviewResult.risks" :key="index" class="risk-item" :class="risk.level">
                 <span class="risk-level">{{ risk.level === '高' ? '🔴' : risk.level === '中' ? '🟡' : '🟢' }}</span>
@@ -83,15 +113,15 @@
                   <button v-for="q in quickQuestions" :key="q" @click="sendQuickQuestion(q)" class="quick-btn">{{ q }}</button>
                 </div>
               </div>
-              <div
-                v-for="(msg, index) in chatMessages"
-                :key="index"
-                class="chat-message"
-                :class="msg.role"
-              >
+              <div v-for="(msg, index) in chatMessages" :key="index" class="chat-message" :class="msg.role">
                 <div class="msg-avatar">{{ msg.role === 'user' ? '👤' : '🤖' }}</div>
                 <div class="msg-content">
-                  <div class="msg-text">{{ msg.content }}</div>
+                  <div
+                    v-if="msg.role === 'ai'"
+                    class="msg-text markdown-body"
+                    v-html="renderMarkdown(msg.content)"
+                  ></div>
+                  <div v-else class="msg-text">{{ msg.content }}</div>
                 </div>
               </div>
               <div v-if="isTyping" class="chat-message ai">
@@ -121,15 +151,35 @@
 
 <script setup lang="ts">
 import { ref, nextTick, onMounted } from 'vue'
-import { aiApi } from '../services/api'
+import MarkdownIt from 'markdown-it'
+import { aiApi, type GeneratedDocument, type ReviewResult } from '../services/api'
 
 const activeFunction = ref('qa')
 const fileInput = ref<HTMLInputElement>()
 const chatMessages = ref<Array<{ role: 'user' | 'ai'; content: string }>>([])
 const userInput = ref('')
 const isTyping = ref(false)
+const isGeneratingDocument = ref(false)
+const isReviewing = ref(false)
 const chatMessagesRef = ref<HTMLElement>()
-const reviewResult = ref<any>(null)
+const documentResult = ref<GeneratedDocument | null>(null)
+const reviewResult = ref<ReviewResult | null>(null)
+const documentError = ref('')
+const reviewError = ref('')
+const generatingTemplateName = ref('')
+const reviewFileName = ref('')
+const markdown = new MarkdownIt({
+  html: false,
+  breaks: true,
+  linkify: true
+})
+
+interface DocumentTemplate {
+  id: string
+  name: string
+  description: string
+  icon: string
+}
 
 const functions = [
   { id: 'document', name: '文档生成', description: '标准化文档起草', icon: '📝' },
@@ -137,7 +187,7 @@ const functions = [
   { id: 'qa', name: '法律问答', description: '智能法律咨询', icon: '💬' }
 ]
 
-const documentTemplates = [
+const documentTemplates: DocumentTemplate[] = [
   { id: '1', name: '劳动合同', description: '标准版劳动合同模板', icon: '📄' },
   { id: '2', name: '买卖合同', description: '货物采购合同模板', icon: '🛒' },
   { id: '3', name: '保密协议', description: 'NDA保密协议模板', icon: '🔒' },
@@ -153,44 +203,65 @@ const quickQuestions = [
   '如何保护商业秘密？'
 ]
 
-const aiResponses: Record<string, string> = {
-  '公司设立需要哪些材料？': '公司设立通常需要以下材料：\n\n1. 股东身份证明文件\n2. 公司章程\n3. 注册地址证明（房产证或租赁合同）\n4. 法定代表人身份证明\n5. 企业名称预先核准通知书\n\n具体要求可能因地区而异，建议咨询当地市场监督管理部门。',
-  '劳动合同有哪些必备条款？': '根据《劳动合同法》规定，劳动合同应当具备以下必备条款：\n\n1. 用人单位的名称、住所和法定代表人\n2. 劳动者的姓名、住址和居民身份证号\n3. 劳动合同期限\n4. 工作内容和工作地点\n5. 工作时间和休息休假\n6. 劳动报酬\n7. 社会保险\n8. 劳动保护、劳动条件和职业危害防护\n9. 法律、法规规定应当纳入劳动合同的其他事项',
-  '商标注册流程是怎样的？': '商标注册流程大致如下：\n\n1. 商标查询（评估注册风险）\n2. 准备申请材料\n3. 提交注册申请\n4. 形式审查（1-2个月）\n5. 实质审查（6-9个月）\n6. 初审公告（3个月异议期）\n7. 注册公告及发证\n\n整个流程通常需要12-18个月。',
-  '如何保护商业秘密？': '保护商业秘密可以从以下几个方面入手：\n\n1. 明确商业秘密范围，进行密级划分\n2. 与员工、合作伙伴签订保密协议\n3. 采取物理和技术保密措施\n4. 建立内部保密管理制度\n5. 定期进行保密培训\n6. 发现泄密及时采取法律手段\n\n建议委托专业律师制定完整的商业秘密保护方案。'
+const templatePrompts: Record<string, string> = {
+  '1': '请突出劳动合同期限、岗位职责、薪酬结构、社保与解除条款。',
+  '2': '请突出标的物信息、价款支付、交付验收、违约责任和争议解决条款。',
+  '3': '请突出保密信息范围、保密义务、例外情形、违约责任和存续期限。',
+  '4': '请突出公司设立基础信息、组织结构、股东权利义务和表决机制。',
+  '5': '请突出委托事项、权限范围、期限和转委托限制。',
+  '6': '请突出会议基本情况、决议事项、表决结果和签署要求。'
 }
 
-const selectTemplate = (tpl: any) => {
-  alert(`您选择了：${tpl.name}\n\n功能演示：实际使用时，系统将引导您填写相关信息并生成文档初稿。`)
-}
+const selectTemplate = async (tpl: DocumentTemplate) => {
+  if (isGeneratingDocument.value) return
 
-const triggerUpload = () => {
-  fileInput.value?.click()
-}
+  generatingTemplateName.value = tpl.name
+  documentError.value = ''
+  documentResult.value = null
+  isGeneratingDocument.value = true
 
-const handleFileChange = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  if (target.files && target.files[0]) {
-    simulateReview()
+  try {
+    documentResult.value = await aiApi.generateDocument(tpl.id, tpl.name, templatePrompts[tpl.id])
+  } catch (error: any) {
+    documentError.value = error?.message || '生成文档失败，请稍后重试。'
+  } finally {
+    isGeneratingDocument.value = false
   }
 }
 
-const handleDrop = () => {
-  simulateReview()
+const triggerUpload = () => {
+  if (isReviewing.value) return
+  fileInput.value?.click()
 }
 
-const simulateReview = () => {
-  reviewResult.value = {
-    risks: [
-      { level: '高', text: '合同中缺少违约责任条款，建议补充' },
-      { level: '中', text: '争议解决方式约定不够明确' },
-      { level: '低', text: '建议明确合同生效条件' }
-    ],
-    suggestions: [
-      '建议在合同中明确约定违约金计算方式',
-      '建议明确约定由原告所在地法院管辖',
-      '建议增加合同附件清单条款'
-    ]
+const handleFileChange = async (e: Event) => {
+  const target = e.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    await submitReview(target.files[0])
+    target.value = ''
+  }
+}
+
+const handleDrop = async (e: DragEvent) => {
+  if (isReviewing.value) return
+  const droppedFile = e.dataTransfer?.files?.[0]
+  if (droppedFile) {
+    await submitReview(droppedFile)
+  }
+}
+
+const submitReview = async (file: File) => {
+  reviewFileName.value = file.name
+  reviewError.value = ''
+  reviewResult.value = null
+  isReviewing.value = true
+
+  try {
+    reviewResult.value = await aiApi.reviewDocument(file)
+  } catch (error: any) {
+    reviewError.value = error?.message || '文档审查失败，请稍后重试。'
+  } finally {
+    isReviewing.value = false
   }
 }
 
@@ -202,6 +273,8 @@ const scrollToBottom = () => {
   })
 }
 
+const renderMarkdown = (content: string) => markdown.render(content)
+
 const sendQuickQuestion = (question: string) => {
   userInput.value = question
   sendMessage()
@@ -210,23 +283,50 @@ const sendQuickQuestion = (question: string) => {
 const sendMessage = async () => {
   if (!userInput.value.trim() || isTyping.value) return
 
-  const question = userInput.value
+  const question = userInput.value.trim()
   chatMessages.value.push({ role: 'user', content: question })
   userInput.value = ''
   isTyping.value = true
   scrollToBottom()
 
+  let aiMessage: { role: 'ai'; content: string } | null = null
+
   try {
-    const answer = await aiApi.ask(question)
-    chatMessages.value.push({ role: 'ai', content: answer || '未从模型获得有效回复。' })
+    await aiApi.askStream(question, {
+      onChunk: (chunk) => {
+        if (!aiMessage) {
+          aiMessage = { role: 'ai', content: '' }
+          chatMessages.value.push(aiMessage)
+        }
+        aiMessage.content += chunk
+        scrollToBottom()
+      },
+      onDone: () => {
+        if (!aiMessage) {
+          aiMessage = { role: 'ai', content: '未从模型获得有效回复。' }
+          chatMessages.value.push(aiMessage)
+        } else if (!aiMessage.content.trim()) {
+          aiMessage.content = '未从模型获得有效回复。'
+        }
+      }
+    })
   } catch (error: any) {
     const message = error?.message || '调用 AI 模型失败，请稍后重试。'
-    chatMessages.value.push({ role: 'ai', content: message })
+    if (!aiMessage) {
+      aiMessage = { role: 'ai', content: message }
+      chatMessages.value.push(aiMessage)
+    } else {
+      aiMessage.content = message
+    }
   } finally {
     isTyping.value = false
     scrollToBottom()
   }
 }
+
+onMounted(() => {
+  scrollToBottom()
+})
 </script>
 
 <style scoped>
@@ -355,6 +455,11 @@ const sendMessage = async () => {
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
 }
 
+.template-card.loading {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .tpl-icon {
   font-size: 40px;
   margin-bottom: 12px;
@@ -386,6 +491,11 @@ const sendMessage = async () => {
   background: #f5f7ff;
 }
 
+.upload-area.disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .upload-icon {
   font-size: 48px;
   margin-bottom: 16px;
@@ -402,6 +512,64 @@ const sendMessage = async () => {
   color: #999;
 }
 
+.upload-file {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.status-card,
+.error-card,
+.document-result {
+  margin-top: 24px;
+  padding: 20px 24px;
+  border-radius: 12px;
+}
+
+.status-card {
+  background: linear-gradient(135deg, #eef4ff 0%, #f8fbff 100%);
+  border: 1px solid #dbeafe;
+}
+
+.status-card h4,
+.result-header h4 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.status-card p,
+.result-header p {
+  margin: 0;
+  font-size: 14px;
+  color: #4b5563;
+  line-height: 1.7;
+}
+
+.error-card {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.document-result {
+  background: linear-gradient(135deg, #f8fbff 0%, #ffffff 100%);
+  border: 1px solid #e5e7eb;
+}
+
+.result-header {
+  margin-bottom: 18px;
+}
+
+.document-preview {
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
 .review-result {
   margin-top: 24px;
   padding: 24px;
@@ -414,6 +582,16 @@ const sendMessage = async () => {
   font-weight: 700;
   color: #333;
   margin-bottom: 16px;
+}
+
+.review-summary {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  background: #fff;
+  border-radius: 8px;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.8;
 }
 
 .risk-list {
@@ -576,6 +754,84 @@ const sendMessage = async () => {
   font-size: 14px;
   line-height: 1.8;
   white-space: pre-wrap;
+}
+
+.markdown-body {
+  white-space: normal;
+}
+
+.markdown-body :deep(h1),
+.markdown-body :deep(h2),
+.markdown-body :deep(h3),
+.markdown-body :deep(h4) {
+  margin: 0 0 12px;
+  color: #1f2937;
+  line-height: 1.4;
+}
+
+.markdown-body :deep(h1) {
+  font-size: 22px;
+}
+
+.markdown-body :deep(h2) {
+  font-size: 18px;
+}
+
+.markdown-body :deep(h3) {
+  font-size: 16px;
+}
+
+.markdown-body :deep(p),
+.markdown-body :deep(ul),
+.markdown-body :deep(ol),
+.markdown-body :deep(blockquote),
+.markdown-body :deep(pre) {
+  margin: 0 0 12px;
+}
+
+.markdown-body :deep(ul),
+.markdown-body :deep(ol) {
+  padding-left: 20px;
+}
+
+.markdown-body :deep(li) {
+  margin-bottom: 6px;
+}
+
+.markdown-body :deep(code) {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 13px;
+  padding: 2px 6px;
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 6px;
+}
+
+.markdown-body :deep(pre) {
+  padding: 12px;
+  overflow-x: auto;
+  background: #0f172a;
+  border-radius: 10px;
+}
+
+.markdown-body :deep(pre code) {
+  padding: 0;
+  color: #e2e8f0;
+  background: transparent;
+}
+
+.markdown-body :deep(blockquote) {
+  padding-left: 12px;
+  color: #475569;
+  border-left: 3px solid #cbd5e1;
+}
+
+.markdown-body :deep(a) {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.markdown-body :deep(a:hover) {
+  text-decoration: underline;
 }
 
 .typing {

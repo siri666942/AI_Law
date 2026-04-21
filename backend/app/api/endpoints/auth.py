@@ -31,8 +31,17 @@ from app.services.security import create_access_token, hash_password, verify_pas
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserOut)
-def register(payload: RegisterIn, db: Session = Depends(get_db)) -> User:
+def _normalize_role(role: str | None) -> str | None:
+    """兼容压缩包前端的 user 角色命名，并统一映射到主线使用的 client。"""
+    if role == "user":
+        return "client"
+    if role in ("lawyer", "client"):
+        return role
+    return None
+
+
+@router.post("/register", response_model=LoginOut)
+def register(payload: RegisterIn, db: Session = Depends(get_db)) -> LoginOut:
     """
     用户注册接口
     
@@ -76,18 +85,23 @@ def register(payload: RegisterIn, db: Session = Depends(get_db)) -> User:
             raise HTTPException(status_code=400, detail="用户名或邮箱已存在")
 
     # 创建用户对象，密码经过 bcrypt 加密；可选角色 lawyer/client
+    normalized_role = _normalize_role(payload.role)
+
     user = User(
         username=payload.username,
         email=payload.email,
         hashed_password=hash_password(payload.password),  # 密码加密存储
-        role=payload.role if payload.role in ("lawyer", "client") else None,
+        role=normalized_role,
+        phone=payload.phone,
     )
     
     # 保存到数据库
     db.add(user)      # 添加到会话
     db.commit()       # 提交事务
     db.refresh(user)  # 刷新对象，获取数据库生成的 ID
-    return user
+
+    token = create_access_token(subject=user.username)
+    return LoginOut(access_token=token, user=UserOut.model_validate(user))
 
 
 @router.post("/login", response_model=LoginOut)

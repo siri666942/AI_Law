@@ -7,6 +7,7 @@
 """
 
 from datetime import date, datetime
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,13 +16,13 @@ class CaseCreateIn(BaseModel):
     """创建案件请求体，与前端 create-case 表单一致。"""
     caseNo: str = Field(..., max_length=64, description="案号")
     caseTitle: str = Field(..., max_length=255, description="案件标题")
-    caseType: str | None = Field(default=None, max_length=64)
-    court: str | None = Field(default=None, max_length=255)
-    judge: str | None = Field(default=None, max_length=64)
-    filingDate: str | None = Field(default=None, description="立案时间，如 2024-01-15 或 2024年1月15日")
-    amount: str | None = Field(default=None, max_length=64)
-    applicableLaw: str | None = None
-    client_id: int | None = Field(default=None, alias="clientId", description="客户用户ID，可选")
+    caseType: Optional[str] = Field(default=None, max_length=64)
+    court: Optional[str] = Field(default=None, max_length=255)
+    judge: Optional[str] = Field(default=None, max_length=64)
+    filingDate: Optional[str] = Field(default=None, description="立案时间，如 2024-01-15 或 2024年1月15日")
+    amount: Optional[str] = Field(default=None, max_length=64)
+    applicableLaw: Optional[str] = None
+    client_id: Optional[int] = Field(default=None, alias="clientId", description="客户用户ID，可选")
 
 
 class LegalCase(BaseModel):
@@ -36,9 +37,9 @@ class LegalCase(BaseModel):
     procedure: str
     year: int
     result: str
-    parties: dict
+    parties: Dict
     summary: str
-    tags: list[str]
+    tags: List[str]
     date: str
 
 
@@ -53,9 +54,9 @@ class CaseListItem(BaseModel):
     statusType: str
     date: str
     progress: int
-    type: str | None = None
-    lawyer: str | None = None
-    client: str | None = None
+    type: Optional[str] = None
+    lawyer: Optional[str] = None
+    client: Optional[str] = None
 
 
 class CaseDetailOut(BaseModel):
@@ -65,21 +66,21 @@ class CaseDetailOut(BaseModel):
     id: int
     caseNo: str
     caseTitle: str
-    caseType: str | None = None
-    court: str | None = None
-    judge: str | None = None
-    filingDate: str | None = None
-    amount: str | None = None
-    applicableLaw: str | None = None
-    client: str | None = None
-    lawyer: str | None = None
+    caseType: Optional[str] = None
+    court: Optional[str] = None
+    judge: Optional[str] = None
+    filingDate: Optional[str] = None
+    amount: Optional[str] = None
+    applicableLaw: Optional[str] = None
+    client: Optional[str] = None
+    lawyer: Optional[str] = None
     status: str
     statusType: str
     progress: int
-    created_at: datetime | None = None
-    timeline: list[dict] | None = None
-    documents: list[dict] | None = None
-    parties: list[dict] | None = None
+    created_at: Optional[datetime] = None
+    timeline: Optional[List[Dict]] = None
+    documents: Optional[List[Dict]] = None
+    parties: Optional[List[Dict]] = None
 
 
 class CaseOut(BaseModel):
@@ -92,6 +93,6 @@ class CaseOut(BaseModel):
     status: str
     statusType: str = "pending"
     progress: int = 0
-    caseType: str | None = None
-    filingDate: str | None = None
-    created_at: datetime | None = None
+    caseType: Optional[str] = None
+    filingDate: Optional[str] = None
+    created_at: Optional[datetime] = None

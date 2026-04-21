@@ -6,6 +6,7 @@
 =============================================================================
 """
 
+from typing import Optional
 from sqlalchemy import ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,20 +21,20 @@ class LawyerProfile(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(64))
-    title: Mapped[str | None] = mapped_column(String(64), default=None)
-    organization: Mapped[str | None] = mapped_column(String(255), default=None)
-    license_number: Mapped[str | None] = mapped_column(String(64), default=None)
-    practice_years: Mapped[str | None] = mapped_column(String(20), default=None)
-    practice_area: Mapped[str | None] = mapped_column(String(128), default=None)
-    expertise: Mapped[str | None] = mapped_column(String(255), default=None)
-    introduction: Mapped[str | None] = mapped_column(Text, default=None)
-    expertise_areas: Mapped[list | None] = mapped_column(JSON, default=None)
-    language_skills: Mapped[str | None] = mapped_column(String(255), default=None)
-    education: Mapped[dict | None] = mapped_column(JSON, default=None)
-    work_experience: Mapped[list | None] = mapped_column(JSON, default=None)
-    case_experience: Mapped[list | None] = mapped_column(JSON, default=None)
-    avatar_emoji: Mapped[str | None] = mapped_column(String(20), default=None)
-    tags: Mapped[list | None] = mapped_column(JSON, default=None)
-    categories: Mapped[list | None] = mapped_column(JSON, default=None)
+    title: Mapped[Optional[str]] = mapped_column(String(64), default=None)
+    organization: Mapped[Optional[str]] = mapped_column(String(255), default=None)
+    license_number: Mapped[Optional[str]] = mapped_column(String(64), default=None)
+    practice_years: Mapped[Optional[str]] = mapped_column(String(20), default=None)
+    practice_area: Mapped[Optional[str]] = mapped_column(String(128), default=None)
+    expertise: Mapped[Optional[str]] = mapped_column(String(255), default=None)
+    introduction: Mapped[Optional[str]] = mapped_column(Text, default=None)
+    expertise_areas: Mapped[Optional[list]] = mapped_column(JSON, default=None)
+    language_skills: Mapped[Optional[str]] = mapped_column(String(255), default=None)
+    education: Mapped[Optional[dict]] = mapped_column(JSON, default=None)
+    work_experience: Mapped[Optional[list]] = mapped_column(JSON, default=None)
+    case_experience: Mapped[Optional[list]] = mapped_column(JSON, default=None)
+    avatar_emoji: Mapped[Optional[str]] = mapped_column(String(20), default=None)
+    tags: Mapped[Optional[list]] = mapped_column(JSON, default=None)
+    categories: Mapped[Optional[list]] = mapped_column(JSON, default=None)
 
     user = relationship("User", backref="lawyer_profile")

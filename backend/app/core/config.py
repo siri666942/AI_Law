@@ -21,7 +21,14 @@ from app.core.config import settings
 print(settings.PROJECT_NAME)  # 访问配置项
 """
 
+from pathlib import Path
+from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_SQLITE_PATH = BACKEND_DIR / "data" / "app.db"
 
 
 class Settings(BaseSettings):
@@ -52,7 +59,14 @@ class Settings(BaseSettings):
     # Pydantic v2 的配置方式，替代了 v1 的 Config 内部类
     # env_file: 指定 .env 文件路径
     # env_file_encoding: .env 文件编码
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=(
+            str(BACKEND_DIR / ".env"),
+            str(PROJECT_ROOT / ".env"),
+        ),
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     # ======================== 项目基本信息 ========================
     PROJECT_NAME: str = "律宝小队-后端"  # 项目名称，显示在 Swagger 文档标题
@@ -69,10 +83,10 @@ class Settings(BaseSettings):
 
     # ======================== 数据库配置 ========================
     # 数据库连接字符串，默认使用 SQLite
-    # SQLite 格式: sqlite:///./文件名.db
+    # SQLite 格式: sqlite:////绝对路径/文件名.db
     # PostgreSQL 格式: postgresql://user:password@host:port/database
     # MySQL 格式: mysql+pymysql://user:password@host:port/database
-    DATABASE_URL: str = "sqlite:///./app.db"
+    DATABASE_URL: str = f"sqlite:///{DEFAULT_SQLITE_PATH}"
     
     # ======================== 文件存储配置 ========================
     # 文件上传目录
@@ -81,12 +95,23 @@ class Settings(BaseSettings):
     # ======================== CORS 配置 ========================
     # 允许的跨域源列表，默认允许前端开发服务器
     # 生产环境请通过环境变量覆盖
-    BACKEND_CORS_ORIGINS: list[str] = [
+    BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3001",
         "http://127.0.0.1:3001",
     ]
+
+    # ======================== AI / LLM 配置 ========================
+    # 说明：当前项目的 AI 端点仍可能是占位实现，但配置项提前预留，
+    # 便于后续接入 OpenAI / OpenAI-兼容接口 / 其他供应商。
+    AI_PROVIDER: str = "openai_compatible"
+    AI_API_KEY: Optional[str] = None
+    AI_BASE_URL: Optional[str] = None
+    AI_MODEL: Optional[str] = None
+    AI_TEMPERATURE: float = 0.2
+    AI_MAX_TOKENS: int = 1024
+    AI_TIMEOUT_SECONDS: int = 60
 
 
 # 创建全局配置实例

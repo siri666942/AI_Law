@@ -19,6 +19,8 @@
 4. 文档生成：自动生成 OpenAPI 文档中的 Schema
 """
 
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -53,15 +55,17 @@ class RegisterIn(BaseModel):
     
     # 邮箱：可选字段
     # EmailStr 是 Pydantic 内置的邮箱类型，会自动验证邮箱格式
-    # str | None = None 表示可选字段，默认值为 None
-    # 这种语法在 Java 中没有直接对应，Java 需要用 @Nullable 注解
-    email: EmailStr | None = None
+    # Optional[EmailStr] 表示可选字段，默认值为 None
+    email: Optional[EmailStr] = None
 
     # 角色：可选，lawyer=律师 / client=客户，默认不传则由前端角色选择页再设
-    role: str | None = Field(default=None, max_length=20)
+    role: Optional[str] = Field(default=None, max_length=20)
+
+    # 手机号：前端注册表单可能携带，后端按扩展字段存储
+    phone: Optional[str] = Field(default=None, max_length=20)
 
     # 验证码：前端表单可能携带，后端暂不校验，仅接收以适配前端
-    code: str | None = Field(default=None, max_length=10)
+    code: Optional[str] = Field(default=None, max_length=10)
 
 
 class LoginIn(BaseModel):
@@ -148,10 +152,10 @@ class UserOut(BaseModel):
 
     id: int
     username: str
-    email: str | None  # 可选字段，用户可能未设置邮箱
-    role: str | None = None
-    avatar: str | None = None
-    phone: str | None = None
+    email: Optional[str]  # 可选字段，用户可能未设置邮箱
+    role: Optional[str] = None
+    avatar: Optional[str] = None
+    phone: Optional[str] = None
 
 
 # 解决 LoginOut 中 user: UserOut 前向引用

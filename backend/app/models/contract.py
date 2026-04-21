@@ -21,6 +21,7 @@ contracts 表
 - Contract N:1 UploadedFile (一个合同可以关联一个文件)
 """
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
@@ -64,8 +65,8 @@ class Contract(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), index=True)
     
     # 关联的文件（可空）
-    # Mapped[int | None] 表示此字段可以为 NULL
-    file_id: Mapped[int | None] = mapped_column(
+    # Mapped[Optional[int]] 表示此字段可以为 NULL
+    file_id: Mapped[Optional[int]] = mapped_column(
         Integer, ForeignKey("uploaded_files.id"), index=True
     )
 
@@ -75,7 +76,7 @@ class Contract(Base):
     
     # 合同描述，使用 Text 类型支持长文本
     # Text 在 MySQL 中映射为 TEXT 类型，在 SQLite 中也是 TEXT
-    description: Mapped[str | None] = mapped_column(Text)
+    description: Mapped[Optional[str]] = mapped_column(Text)
     
     # 合同状态，默认为 "draft"（草稿）
     # index=True: 为状态字段创建索引，因为经常按状态查询

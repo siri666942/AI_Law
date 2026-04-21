@@ -20,6 +20,7 @@ law_articles 表
 3. 合同审查：AI 引用相关法条作为法律依据
 """
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Integer, String, Text
@@ -67,7 +68,7 @@ class LawArticle(Base):
     
     # 条款编号，如 "第一条"、"第一百二十三条" 等
     # 可空，因为有些法规可能没有明确的条款编号
-    article_no: Mapped[str | None] = mapped_column(String(50), index=True)
+    article_no: Mapped[Optional[str]] = mapped_column(String(50), index=True)
     
     # ======================== 内容字段 ========================
     # 法条的完整文本内容

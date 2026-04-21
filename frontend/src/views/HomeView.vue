@@ -2,7 +2,7 @@
   <div class="home-view">
     <div class="hero-section">
       <div class="hero-content">
-        <h1 class="hero-title">律界法宝</h1>
+        <h1 class="hero-title">法途</h1>
       <p class="hero-subtitle">为初创企业提供全方位的法律智能服务，助力企业健康发展</p>
         <div class="hero-buttons">
           <router-link to="/diagnosis" class="btn primary">开始智能诊断</router-link>
@@ -10,7 +10,7 @@
         </div>
       </div>
       <div class="hero-image">
-        <img src="/logo.png" alt="律界法宝logo" class="hero-graphic" />
+        <img src="/法途.png" alt="法途logo" class="hero-graphic" />
       </div>
     </div>
 

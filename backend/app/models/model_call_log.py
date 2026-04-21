@@ -27,6 +27,7 @@ model_call_logs 表
 4. 使用审计：追踪每个用户的模型使用情况
 """
 
+from typing import Optional
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Integer, String, Text
@@ -71,7 +72,7 @@ class ModelCallLog(Base):
     # ======================== 调用者信息 ========================
     # 用户ID，可空（匿名调用或系统内部调用时为空）
     # nullable=True 显式声明允许 NULL 值
-    user_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     
     # ======================== 调用标识 ========================
     # 调用的接口/模块标识，用于区分不同的调用场景
@@ -80,12 +81,12 @@ class ModelCallLog(Base):
     
     # 使用的模型名称
     # 例如："gpt-4", "gpt-3.5-turbo", "claude-3-opus"
-    model_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    model_name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     
     # ======================== 输入输出统计 ========================
     # 输入内容的哈希值，用于识别重复请求
     # 使用 SHA256 哈希，64 字符
-    prompt_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    prompt_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     
     # 输入 Token 数量
     # 大语言模型按 Token 计费，Token 大约是 0.75 个单词
@@ -99,7 +100,7 @@ class ModelCallLog(Base):
     status: Mapped[str] = mapped_column(String(50), default="ok")
     
     # 错误信息，仅在 status="error" 时有值
-    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    error_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # ======================== 性能指标 ========================
     # 调用耗时，单位：毫秒

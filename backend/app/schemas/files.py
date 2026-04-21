@@ -15,6 +15,7 @@
 """
 
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -60,7 +61,7 @@ class UploadedFileOut(BaseModel):
     # 文件的 MIME 类型
     # 例如："application/pdf", "image/png", "text/plain"
     # 可能为 None，如果无法识别文件类型
-    content_type: str | None
+    content_type: Optional[str]
     
     # 文件大小，单位：字节
     # 可用于显示文件大小或限制下载

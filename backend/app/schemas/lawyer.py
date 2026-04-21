@@ -7,6 +7,7 @@
 """
 
 from pydantic import BaseModel, ConfigDict
+from typing import Optional, List, Dict
 
 
 class LawyerListItem(BaseModel):
@@ -15,26 +16,26 @@ class LawyerListItem(BaseModel):
 
     id: int
     name: str
-    title: str | None = None
-    avatarEmoji: str | None = None
-    introduction: str | None = None
-    tags: list[str] | None = None
-    categories: list[str] | None = None
+    title: Optional[str] = None
+    avatarEmoji: Optional[str] = None
+    introduction: Optional[str] = None
+    tags: Optional[List[str]] = None
+    categories: Optional[List[str]] = None
 
 
 class LawyerStats(BaseModel):
     """律师统计数据（前端 stats）。"""
-    caseCount: str | None = None
-    winRate: str | None = None
-    clientSatisfaction: str | None = None
-    years: str | None = None
+    caseCount: Optional[str] = None
+    winRate: Optional[str] = None
+    clientSatisfaction: Optional[str] = None
+    years: Optional[str] = None
 
 
 class LawyerEducation(BaseModel):
     """教育背景。"""
-    degree: str | None = None
-    school: str | None = None
-    major: str | None = None
+    degree: Optional[str] = None
+    school: Optional[str] = None
+    major: Optional[str] = None
 
 
 class LawyerDetailOut(BaseModel):
@@ -42,17 +43,17 @@ class LawyerDetailOut(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     name: str
-    title: str | None = None
-    avatarEmoji: str | None = None
-    organization: str | None = None
-    licenseNumber: str | None = None
-    practiceYears: str | None = None
-    practiceArea: str | None = None
-    expertise: str | None = None
-    stats: LawyerStats | None = None
-    education: LawyerEducation | dict | None = None
-    languageSkills: str | None = None
-    introduction: str | None = None
-    expertiseAreas: list[str] | None = None
-    workExperience: list[dict] | None = None
-    caseExperience: list[dict] | None = None
+    title: Optional[str] = None
+    avatarEmoji: Optional[str] = None
+    organization: Optional[str] = None
+    licenseNumber: Optional[str] = None
+    practiceYears: Optional[str] = None
+    practiceArea: Optional[str] = None
+    expertise: Optional[str] = None
+    stats: Optional[LawyerStats] = None
+    education: Optional[Dict] = None
+    languageSkills: Optional[str] = None
+    introduction: Optional[str] = None
+    expertiseAreas: Optional[List[str]] = None
+    workExperience: Optional[List[Dict]] = None
+    caseExperience: Optional[List[Dict]] = None

@@ -17,6 +17,7 @@ GET /api/v1/query/laws       - 搜索法条（公开接口）
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+from typing import Optional, List
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
@@ -29,13 +30,13 @@ from app.schemas.query import ContractOut, LawArticleOut
 router = APIRouter()
 
 
-@router.get("/contracts", response_model=list[ContractOut])
+@router.get("/contracts", response_model=List[ContractOut])
 def list_contracts(
-    q: str | None = Query(default=None, description="标题/描述关键字"),
-    status: str | None = Query(default=None, description="合同状态过滤"),
+    q: Optional[str] = Query(default=None, description="标题/描述关键字"),
+    status: Optional[str] = Query(default=None, description="合同状态过滤"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> list[ContractModel]:
+) -> List[ContractModel]:
     """
     查询合同列表
     
@@ -86,12 +87,12 @@ def list_contracts(
     return query.order_by(ContractModel.id.desc()).all()
 
 
-@router.get("/laws", response_model=list[LawArticleOut])
+@router.get("/laws", response_model=List[LawArticleOut])
 def search_laws(
-    keyword: str | None = Query(default=None, description="内容关键字"),
-    law_name: str | None = Query(default=None, description="法律名称过滤"),
+    keyword: Optional[str] = Query(default=None, description="内容关键字"),
+    law_name: Optional[str] = Query(default=None, description="法律名称过滤"),
     db: Session = Depends(get_db),
-) -> list[LawArticleModel]:
+) -> List[LawArticleModel]:
     """
     搜索法条
     

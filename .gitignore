@@ -1,25 +1,45 @@
 # ==================== Python ====================
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
 *.so
 .Python
 *.egg-info/
 .eggs/
 *.egg
+.python-version
 .venv/
 venv/
 env/
+myenv/
+.mypy_cache/
+.ruff_cache/
 
 # ==================== Backend ====================
+.env
+.env.*
+!.env.example
+!.env.sample
 backend/.env
+*.db
+*.db-journal
+*.sqlite3
 backend/*.db
 backend/app.db
+backend/data/*.db
+backend/data/*.db-journal
+backend/data/*.sqlite3
+app.db
 backend/uploads/
 
 # ==================== Frontend ====================
 frontend/node_modules/
 frontend/dist/
+.npm/
+.pnpm-store/
 *.local
 
 # ==================== Agent ====================
@@ -34,6 +54,7 @@ agent/*.bin
 dist/
 build/
 *.log
+*.pid
 
 # ==================== IDE / OS ====================
 .idea/
@@ -46,5 +67,25 @@ Thumbs.db
 # ==================== 测试 / 覆盖率 ====================
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .tox/
+.cache/
+
+# ==================== Repo Noise / Imported Artifacts ====================
+applypatch-msg.sample
+commit-msg.sample
+fsmonitor-watchman.sample
+post-update.sample
+pre-applypatch.sample
+pre-commit.sample
+pre-merge-commit.sample
+pre-push.sample
+pre-rebase.sample
+pre-receive.sample
+prepare-commit-msg.sample
+push-to-checkout.sample
+sendemail-validate.sample
+update.sample
+exclude
+律宝web代码.html

@@ -21,6 +21,7 @@ GET  /api/v1/files         - 获取当前用户的文件列表（需要认证）
 
 from pathlib import Path
 from uuid import uuid4
+from typing import List
 
 from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
@@ -113,11 +114,11 @@ def upload_file(
     return record
 
 
-@router.get("", response_model=list[UploadedFileOut])
+@router.get("", response_model=List[UploadedFileOut])
 def list_my_files(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> list[UploadedFileModel]:
+) -> List[UploadedFileModel]:
     """
     获取当前用户的文件列表
     
